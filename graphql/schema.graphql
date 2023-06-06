@@ -1,0 +1,985 @@
+"A date string with format `Y-m-d`, e.g. `2011-05-23`."
+scalar Date @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\Date")
+
+"A datetime string with format `Y-m-d H:i:s`, e.g. `2018-05-23 13:43:32`."
+scalar DateTime @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\DateTime")
+
+scalar Upload @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\Upload")
+
+type Query {
+
+    userProfile(language: String):User @middleware(checks: ["auth:api","status"]) @SetLanguage
+    userActiveTime:User @middleware(checks: ["auth:api","status"]) @SetLanguage
+    userProperties(is_public_status: [IsPublicStatusEnum],  property_type: [String],  price_order:String, first: Int, page: Int, orderBy:OrderBy, language: String ):PropertiesPaginate @middleware(checks: ["auth:api","status"]) @SetLanguage
+    userProperty(id:ID):Property @middleware(checks: ["auth:api","status"]) @SetLanguage
+    propertyViewsStatistics(id:ID!, start:Date, end:Date): Statistics
+    propertyShareStatistics(id:ID!, start:Date, end:Date): Statistics
+
+    userSaveProperties(property_type:[PropertyTypeEnum] ,price_order:String, first: Int, page: Int, orderBy:OrderBy, language: String):PropertiesPaginate @middleware(checks: ["auth:api","status"]) @SetLanguage
+    userSavePropertyById(id:Int, language: String):Property  @middleware(checks: ["auth:api","status"]) @SetLanguage
+
+    userFavoriteProperties( property_type: [String],  price_order:String, first: Int, page: Int, orderBy:OrderBy, language: String):[UserFavoriteProperty] @middleware(checks: ["auth:api","status"]) @SetLanguage
+    userFavoritePropertyById(id:Int, language: String):UserFavoriteProperty  @middleware(checks: ["auth:api","status"]) @SetLanguage
+
+    saveUserFilters(property_type:[PropertyTypeEnum], language: String, orderBy:OrderBy): [SaveUserFilterJson] @middleware(checks: ["auth:api","status"]) @SetLanguage
+    saveUserFilterById(id:ID!, language: String): SaveUserFilterJson  @middleware(checks: ["auth:api","status"]) @SetLanguage
+
+    userSupport(id:Int!, language: String): Support @middleware(checks: ["auth:api","status"]) @SetLanguage
+    userSupports(input: UserSupportInput @spread): [Support] @middleware(checks: ["auth:api","status"]) @SetLanguage
+
+    userArchiveProperties(property_type:[PropertyTypeEnum] , price_order:String, first: Int, page: Int, orderBy:OrderBy, language: String):PropertiesPaginate @middleware(checks: ["auth:api","status"]) @SetLanguage
+
+    # Suggests Price Property
+    propertySuggestsPrice(property_id: ID!, checked: Boolean,  first: Int, page: Int, orderBy:OrderBy, language: String): [SuggestsPriceProperty]  @middleware(checks: ["auth:api","status"]) @SetLanguage
+    userSuggestsPriceProperty(property_id: ID!, checked: Boolean,  first: Int, page: Int, orderBy:OrderBy, language: String): [SuggestsPriceProperty]  @middleware(checks: ["auth:api","status"]) @SetLanguage
+    userInfo(user_id:ID!, language: String): UserInfo  @SetLanguage
+
+    userTypes(language: String,orderBy: [OrderByClause!] @orderBy): [UserType]! @all  @SetLanguage
+    userTypesPaginate(language: String,orderBy: [OrderByClause!] @orderBy): [UserType]! @paginate(defaultCount: 10)  @SetLanguage
+    userType(id: ID @eq, language: String): UserType @find  @SetLanguage
+
+    languages(orderBy: [OrderByClause!] @orderBy): [Language]! @all
+    languagesPaginate: [Language] @paginate(defaultCount: 10)
+    language(id: ID @eq): Language @find
+
+    spamPoints(language: String):[SpamPoint] @SetLanguage
+
+    currencyTypes(orderBy: [OrderByClause!] @orderBy): [CurrencyType]! @all
+    currencyTypesPaginate: [CurrencyType] @paginate(defaultCount: 10)
+    currencyType(id: ID @eq): CurrencyType @find
+
+    getPropertyTypeFilters(property_type:PropertyTypeEnum):[Filter]
+
+    buldingTypes(language: String, orderBy: [OrderByClause!] @orderBy): [BuldingType] @all @SetLanguage
+    buldingTypesPaginate(language: String, orderBy: [OrderByClause!] @orderBy): [BuldingType] @paginate(defaultCount: 10) @SetLanguage
+    buldingType(id: ID @eq,language: String): BuldingType @find @SetLanguage
+
+    landAreaTypes(language: String, orderBy: [OrderByClause!] @orderBy): [LandAreaType] @all @SetLanguage
+    landAreaTypesPaginate(language: String, orderBy: [OrderByClause!] @orderBy): [LandAreaType] @paginate(defaultCount: 10) @SetLanguage
+    landAreaType(id: ID @eq,language: String): LandAreaType @find @SetLanguage
+
+    property(id: ID, currency_id:Int, language: String): Property @SetCurrency @SetLanguage 
+    propertiesPublishedFilters( input: PropertiesPublishedFiltersInput @spread ):PropertiesPaginate @SetCurrency @SetLanguage
+    notificationProperties(first: Int, page: Int, orderBy:OrderBy, language: String): [NotificationUsersProperties] @middleware(checks: ["auth:api","status"]) @SetLanguage
+    similarProperties(id:ID, language: String): [Property] @SetLanguage
+    getPropertiesByUserId(id:ID,first: Int, page: Int, language: String):PropertiesPaginate @SetLanguage
+
+    getPrivacyPolicy(language: String):[Translation]
+    getMediaLinks: MediaLinks
+
+    #  create new Query
+    propertyTypeFilterGroup(property_type_id:Int, language: String):String @SetLanguage
+    propertyFilterGroupFilters(property_id:Int, language: String):String @SetLanguage
+     
+    #Admin
+    adminUsers(input: AdminUserInput @spread) :[User]  @middleware(checks: ["auth:api","admin"])  @SetLanguage
+    adminUser(id: ID @eq, language: String) :User @find  @middleware(checks: ["auth:api","admin"])  @SetLanguage
+    adminProperties(input: AdminPropertiesFiltersInput @spread):PropertiesPaginate  @middleware(checks: ["auth:api","admin"])  @SetLanguage
+    adminProperty(id: ID @eq, currency_id:Int, language: String): Property @find @middleware(checks: ["auth:api","admin"])  @SetCurrency  @SetLanguage
+    adminSupport(id: ID @eq,language: String): Support @find  @middleware(checks: ["auth:api","admin"])  @SetLanguage
+    adminSupports(input: AdminSupportInput @spread) :[Support]  @middleware(checks: ["auth:api","admin"])  @SetLanguage
+    adminSpam(id: ID @eq,language: String): Spam @find  @middleware(checks: ["auth:api","admin"])  @SetLanguage
+    adminSpams( paginate: PaginateInput,  language: String): SpamsPaginate  @middleware(checks: ["auth:api","admin"])  @SetLanguage
+    adminRegisteredUserStatistics(start:Date, end:Date, paginate: PaginateInput):UsersPaginate
+    adminConfigs( paginate: PaginateInput,  language: String): ConfigPaginate @middleware(checks: ["auth:api","admin"])  @SetLanguage
+
+
+}
+
+type Mutation {
+    refreshToken(input: RefreshTokenInput @spread): RefreshTokenPayload! @field(resolver: "Joselfonseca\\LighthouseGraphQLPassport\\GraphQL\\Mutations\\RefreshToken@resolve")
+    logout: LogoutResponse! @field(resolver: "Joselfonseca\\LighthouseGraphQLPassport\\GraphQL\\Mutations\\Logout@resolve")
+     
+    loginUser(input: LoginInput @spread): AuthPayloadLogin! @LoginInputValidation @SetLanguage
+    socialLoginUser(input: SocialLoginInput! @spread): AuthPayloadUser!
+    registerUser(input: RegisterInput @spread): RegisterResponse! @RegisterInputValidation @SetLanguage
+    verifyEmailUser(input: VerifyEmailInput! @spread): AuthPayload! @VerifyEmailInputValidation @SetLanguage
+    forgotPasswordUser(input: ForgotPasswordInput!  @spread): ForgotPasswordResponse!  @ForgotPasswordInputValidation @SetLanguage
+    resetPasswordUser(input: NewPasswordWithCodeInput @spread): ForgotPasswordResponse! @NewPasswordWithCodeInputValidation @SetLanguage
+
+    updateUserProfile(input: updateUserProfileInput @spread): User! @UpdateUserProfileValidation @middleware(checks: ["auth:api","status"]) @SetLanguage
+    deleteUserProfile(password: String!,language: String):Boolean @middleware(checks: ["auth:api","status"]) @SetLanguage
+
+    createProperty(input: CreatePropertyInput @spread):Property! @CreatePropertyValidation  @middleware(checks: ["auth:api","status"]) @SetLanguage
+    updateProperty(input: UpdatePropertyInput @spread): Property @UpdatePropertyValidation @middleware(checks: ["auth:api","status"]) @SetLanguage
+    deleteProperty(id:ID!,language: String): Property!  @middleware(checks: ["auth:api","status"]) @SetLanguage
+    deletePropertyImages(images_ids:[Int!]!,language: String): Boolean!  @middleware(checks: ["auth:api","status"]) @SetLanguage
+    propertyImagePosition(images_ids:[Int!]!,language: String): Boolean!  @middleware(checks: ["auth:api","status"]) @SetLanguage
+    saveProperty(input: SavePropertyInput @spread):Property! @UpdatePropertyValidation @middleware(checks: ["auth:api","status"]) @SetLanguage
+    copySaveProperty(id:ID!,language: String):Property @middleware(checks: ["auth:api","status"]) @SetLanguage
+    addViewCount(id:ID!,language: String): Status @SetLanguage
+    shareProperty(id:ID!): Status
+    updateTimeProperty(id:ID!,language: String): Status @middleware(checks: ["auth:api","status"]) @SetLanguage
+    canceledProperty(id:ID!,language: String): Status @middleware(checks: ["auth:api","status"]) @SetLanguage
+
+    CreateSpam(property_id:Int!, points:[Int], language: String):Spam  @middleware(checks: ["auth:api","status"]) @SetLanguage
+
+    #Paymant
+    registerPropertyInTop(input: RegisterPropertyInTopInput @spread):RegisterPropertyInTop  @middleware(checks: ["auth:api","status"]) @SetLanguage
+    checkAndSetPropertyInTop(id:ID!, order_id:String, language: String):Property  @middleware(checks: ["auth:api","status"]) @SetLanguage
+
+    # Suggests Price for Property    
+    createSuggestsPriceProperty(property_id:Int!, price: Float!, currency_type_id: Int!, end_time:DateTime , language: String): SuggestsPriceProperty  @middleware(checks: ["auth:api","status"]) @SetLanguage
+    updateSuggestsPriceProperty(id:Int!, property_id:Int, price: Float, currency_type_id: Int, end_time:DateTime , language: String): SuggestsPriceProperty  @middleware(checks: ["auth:api","status"]) @SetLanguage
+    deleteSuggestsPriceProperty(id:ID!, language: String): Status  @middleware(checks: ["auth:api","status"]) @SetLanguage
+    SetCheckedSuggestsPriceProperty(id:Int!, checked:Boolean!): SuggestsPriceProperty  @middleware(checks: ["auth:api","status"]) @SetLanguage
+    setNoteSuggestsPriceProperty(id:ID!, note:String, language: String): SuggestsPriceProperty  @middleware(checks: ["auth:api","status"]) @SetLanguage
+
+    createUserFavoriteProperty(property_id:Int!, language: String): UserFavoriteProperty! @middleware(checks: ["auth:api","status"]) @SetLanguage
+    updateUserFavoriteProperty(id:ID!, property_id:Int!, language: String): UserFavoriteProperty!  @middleware(checks: ["auth:api","status"]) @SetLanguage
+    deleteUserFavoriteProperty(id:ID!): Status  @middleware(checks: ["auth:api","status"]) @SetLanguage
+    deleteUserFavoritePropertys(ids: [Int!]): Status  @middleware(checks: ["auth:api","status"]) @SetLanguage
+
+    createSaveUserFilter(input: PropertiesPublishedFiltersInput @spread): Status @middleware(checks: ["auth:api","status"]) @SetLanguage
+    updateSaveUserFilter(id:ID! ,input: PropertiesPublishedFiltersInput @spread): Status @middleware(checks: ["auth:api","status"]) @SetLanguage
+    deleteSaveUserFilter(id:ID!, language: String): Status @middleware(checks: ["auth:api","status"]) @SetLanguage
+
+    #support
+    guestSupport(name:String!, email:String! @rules(apply: ["required","email"]), text:String!, language: String ): Status @SetLanguage
+    authSupport(text:String!, language: String): Status @middleware(checks: ["auth:api","status"]) @SetLanguage
+   
+    # Notification
+
+    # SawNotificationProperties( notificationProperties_ids:[Int] ): Boolean @middleware(checks: ["auth:api","status"]) @SetLanguage
+
+
+    # ADMIN
+    loginAdmin(input: LoginInput @spread): AuthPayloadLogin! @LoginInputValidation @SetLanguage
+    adminCreateUser(input: AdminRegisterInput @spread): Status  @AdminRegisterInputValidation @middleware(checks: ["auth:api","admin"]) @SetLanguage
+    adminUpdateUserProfile(input: AdminUpdateUserProfileInput @spread): User! @UpdateUserProfileValidation @middleware(checks: ["auth:api","admin"])  @SetLanguage
+    adminUpdateProperty(input: AdminUpdatePropertyInput @spread): Property @UpdatePropertyValidation @middleware(checks: ["auth:api","admin"])  @SetLanguage
+    adminCreateProperty(input: AdminCreatePropertyInput @spread): Property @CreatePropertyValidation @middleware(checks: ["auth:api","admin"])  @SetLanguage
+    
+    adminSupport(id:Int!, title:String, body:String!, is_support_status:String): Status @middleware(checks: ["auth:api","admin"])  @SetLanguage
+    adminUpdateSupport(id:Int!, is_support_status:String): Status @middleware(checks: ["auth:api","admin"])  @SetLanguage
+
+    adminCreateSpamPoint(name:String!, translate_point:[TranslateDescriptionInput!]!):SpamPoint  @middleware(checks: ["auth:api","admin"])  @SetLanguage
+    deleteSpamPoint(id:ID!): SpamPoint! @delete @middleware(checks: ["auth:api","admin"])
+
+    adminDeleteSpam(id:ID!): Spam! @delete @middleware(checks: ["auth:api","admin"])
+
+    adminSetConfig(configs: [ConfigInput!] ): Status @middleware(checks: ["auth:api","admin"])
+    adminDeleteConfig(id:ID!): Config!  @delete @middleware(checks: ["auth:api","admin"])
+
+    createLanguage(name: String!,code:String!,flag_image:Upload!, language: String): Language!  @middleware(checks: ["auth:api","admin"])  @SetLanguage
+    updateLanguage(id:ID!,name: String,code:String,flag_image:Upload, language: String): Language!  @middleware(checks: ["auth:api","admin"])  @SetLanguage
+    deleteLanguage(id:ID!,language: String): Language!  @middleware(checks: ["auth:api","admin"])  @SetLanguage
+
+    createCurrencyType( name: String!, symbol: String!, is_current: Boolean, rate: Float ): CurrencyType! @create @middleware(checks: ["auth:api","admin"])  @SetLanguage
+    updateCurrencyType(id:ID!, name: String, symbol: String, is_current: Boolean, rate: Float): CurrencyType! @update @middleware(checks: ["auth:api","admin"])  @SetLanguage
+    deleteCurrencyType(id:ID!): CurrencyType! @delete @middleware(checks: ["auth:api","admin"])  @SetLanguage
+
+    createBuldingType(name: String!): BuldingType! @create  @middleware(checks: ["auth:api","admin"])  @SetLanguage
+    updateBuldingType(id:ID!,name: String): BuldingType! @update  @middleware(checks: ["auth:api","admin"])  @SetLanguage
+    deleteBuldingType(id:ID!): BuldingType! @delete  @middleware(checks: ["auth:api","admin"])  @SetLanguage
+
+    createLandAreaType(name: String!): LandAreaType! @create  @middleware(checks: ["auth:api","admin"])  @SetLanguage
+    updateLandAreaType(id:ID!,name: String): LandAreaType! @update  @middleware(checks: ["auth:api","admin"])  @SetLanguage
+    deleteLandAreaType(id:ID!): LandAreaType! @delete  @middleware(checks: ["auth:api","admin"])  @SetLanguage
+
+    adminUpdatePrivacyPolicy(privacy_policy:[TranslateDescriptionInput!]):Status @middleware(checks: ["auth:api","admin"])  @SetLanguage
+
+}
+
+
+input Mytext{
+    max: Int,
+    my: String
+}
+input AdminRegisterInput {
+    full_name: String! 
+    email: String
+    login_phone: String 
+    user_type: String
+    password: String!
+    password_confirmation: String!
+    language: String
+}
+input updateUserProfileInput{
+     image:Upload
+     full_name: String
+     email: String
+     user_type: String
+     old_password: String 
+     password: String
+     password_confirmation: String
+     phone: [NewPhone!]
+     update_phone: [UpdatePhone!]
+     delete_phone: [Int!],
+     delete_image: Boolean,
+     language: String
+
+}
+input NewPhone{
+    code: String!
+    number: String!
+    viber: Boolean
+    whatsapp: Boolean
+    telegram: Boolean
+
+}
+input  AttachPhone{
+    attach_phones:[Int]
+    new_phones:[NewPhone]
+}
+input UpdatePhone{
+    phone_id: Int
+    code: String!
+    number: String!
+    viber: Boolean
+    whatsapp: Boolean
+    telegram: Boolean
+}
+input CreatePropertyInput{
+    property_id: Int,
+    property_key: String,
+    property_type: String!,
+    property_deal_types:[PropertyDealTypes!]!,
+    bulding_type_id: Int,
+    land_area_type_id: Int,
+    latitude: Float!,
+    longitude: Float!,
+    address: String!,
+    region:  RegionEnum!,
+    postal_code: String,
+    property_state: PropertyStateEnum,
+    property_images:[Upload],
+    property_images_delete_ids: [Int!],
+    property_filter_values: [PropertyFilterValue!], 
+    translate_descriptions: [TranslateDescriptionInput],
+    email: String,
+    phone: AttachPhone,
+    is_bids: Boolean,
+    is_address_precise: Boolean
+    language: String
+    
+}
+input UpdatePropertyInput{
+    id:ID!
+    property_key: String,
+    property_type: String,
+    property_deal_types:[PropertyDealTypes!],
+    bulding_type_id: Int,
+    land_area_type_id: Int,
+    latitude: Float,
+    longitude: Float,
+    address: String,
+    region: RegionEnum,
+    postal_code: String,
+    property_state: PropertyStateEnum,
+    email: String
+    phone: AttachPhone,
+    is_address_precise: Boolean
+    property_images:[Upload],
+    property_images_delete_ids: [Int!],
+    property_filter_values: [PropertyFilterValue!], 
+    translate_descriptions: [TranslateDescriptionInput],
+    is_archive: Boolean
+    is_bids: Boolean,
+    language: String
+}
+input SavePropertyInput{
+    property_id: Int,
+    property_key: String,
+    property_type: String,
+    property_deal_types:[PropertyDealTypes],
+    bulding_type_id: Int,
+    land_area_type_id: Int,
+    latitude: Float,
+    longitude: Float,
+    address: String,
+    region: RegionEnum,
+    postal_code: String,
+    property_state: PropertyStateEnum,
+    property_images:[Upload],
+    is_archive: Boolean,
+    email: String,
+    phone: AttachPhone,
+    is_bids: Boolean,
+    is_address_precise: Boolean,
+    property_filter_values: [PropertyFilterValue], 
+    translate_descriptions: [TranslateDescriptionInput],
+    language: String
+}
+input PropertiesPublishedFiltersInput{
+      ids:[Int],
+      place:[placeInput],
+      place_rectangle: placeRectangleInput,
+      address: String,
+      region: RegionEnum,
+      property_type: [String],
+      user_type: String,
+      area: MinMax,
+      land_area: MinMax,
+      deal_types: [PropertyDealTypesEnum],
+      number_of_floors_of_the_building:MinMax,
+      apartment_floor:MinMax,
+      number_of_rooms:MinMax,
+      number_of_bathrooms: MinMax,
+      property_height:MinMaxFloat,
+      property_state: PropertyStateEnum,
+      bulding_type_id: Int,
+      land_area_type_id: Int,
+      filters:[PropertyFilterValue],
+      price_filters: [PriceFilter],
+      price_order:String,
+      with_picture:Boolean,
+      is_negotiable:Boolean,
+      latest:Boolean,
+      currency_id:Int,
+      paginate: PaginateInput,
+      language: String,
+}
+input placeInput{
+    latitude: Float,
+    longitude: Float,
+    radius: Int
+}
+input placeRectangleInput{
+    top_left_point: latitudeLongitudeInput!,
+    bottom_right_point: latitudeLongitudeInput!
+}
+input latitudeLongitudeInput{
+    latitude: Float!,
+    longitude: Float!,
+}
+input MinMax{
+    min:Int,
+    max: Int
+}
+input MinMaxFloat{
+    min: Float,
+    max: Float
+}
+
+input PriceFilter{
+    currency_type_id: Int,
+    deal_type: String!,
+    min: Int,
+    max: Int,
+}
+input PropertyDealTypes{
+    deal_type: String!,
+    price: Float,
+    currency_type_id: Int
+}
+input TranslateDescriptionInput{
+    language: String!
+    description: String!
+}
+input ImageAndType{
+    type: String!
+    image: String!
+}
+input PropertyFilterValue{
+    filter: String!
+    value: String
+    deal_type: DealTypeEnum
+}
+input OrderBy{
+    field: String!
+    order: String!
+}
+input PaginateInput{
+      first: Int,
+      page: Int
+      }
+input RegisterPropertyInTopInput{
+    id: ID!
+    return_url: String!
+    page_view: PageViewEnum!
+}
+input ConfigInput{
+    key: String,
+    value: String
+}
+#ADMIN
+input AdminUpdateUserProfileInput{
+    user_id: Int!
+    is_delete: Boolean
+    is_block: Boolean
+    reason: String
+    block_start: DateTime
+    block_end: DateTime
+    image:Upload
+    full_name: String
+    email: String
+    user_type: String
+    password: String
+    password_confirmation: String
+    phone: [NewPhone!]
+    update_phone: [UpdatePhone!]
+    delete_phone: [Int!]
+    language: String
+}
+input AdminCreatePropertyInput{
+    user_id: Int
+    email: String
+    phone: String
+    password: String
+    password_confirmation: String
+    property_key: String,
+    property_type: String!,
+    property_deal_types:[PropertyDealTypes!]!,
+    bulding_type_id: Int,
+    land_area_type_id: Int,
+    latitude: Float!,
+    longitude: Float!,
+    address: String!,
+    region: RegionEnum!,
+    postal_code: String,
+    property_state: PropertyStateEnum,
+    property_images:[Upload],
+    property_filter_values: [PropertyFilterValue!], 
+    translate_descriptions: [TranslateDescriptionInput],
+    phone: AttachPhone,
+    language: String
+}
+
+input AdminUserInput{
+    user_type: String,
+    user_id: Int,
+    full_name: String,
+    email: String,
+    phone_number:String,
+    is_delete: Boolean,
+    is_block: Boolean,
+    order_by: String,
+    paginate: PaginateInput,
+}
+input AdminSupportInput{
+    user_id: Int,
+    name: String,
+    email: String,
+    is_support_status: [String],
+    order_by: String,
+    paginate: PaginateInput,
+}
+input UserSupportInput{
+    is_support_status: [String],
+    order_by: String,
+    paginate: PaginateInput,
+}
+
+input AdminPropertiesFiltersInput{
+    public_status: String,
+    is_delete: Boolean,
+    is_archive: Boolean,
+    is_save: Boolean,
+    user_is_delete: Boolean,
+    user_is_block: Boolean,
+    user_id: Int,
+    ids:[Int],
+    place:[placeInput],
+    address: String,
+    region: RegionEnum,
+    property_type: [String],
+    user_type: String,
+    area: MinMax,
+    land_area: MinMax, 
+    deal_types: [PropertyDealTypesEnum],
+    number_of_floors_of_the_building:MinMax,
+    apartment_floor:MinMax,
+    number_of_rooms:MinMax,
+    number_of_bathrooms: MinMax,
+    property_height:MinMaxFloat,
+    property_state: PropertyStateEnum,
+    bulding_type_id: Int,
+    land_area_type_id: Int,
+    filters:[PropertyFilterValue],
+    price_filters: [PriceFilter],
+    price_order:String,
+    with_picture:Boolean,
+    is_negotiable:Boolean,
+    latest:Boolean,
+    order_public_status:IsPublicStatusEnum,
+    paginate: PaginateInput,
+    language: String,
+}
+input AdminUpdatePropertyInput{
+    id:ID!
+    public_status: String,
+    review: String,
+    is_delete: Boolean,
+    is_archive: Boolean,
+    property_key: String,
+    property_type: String,
+    property_deal_types:[PropertyDealTypes!],
+    bulding_type_id: Int,
+    land_area_type_id: Int,
+    latitude: Float,
+    longitude: Float,
+    address: String,
+    region: RegionEnum,
+    postal_code: String,
+    property_state: PropertyStateEnum,
+    email: String,
+    phone: AttachPhone,
+    is_bids: Boolean,
+    is_address_precise: Boolean,
+    property_images:[Upload],
+    property_images_delete_ids: [Int!],
+    property_filter_values: [PropertyFilterValue!],
+    translate_descriptions: [TranslateDescriptionInput],
+    language: String
+}
+
+type PropertyPaginate{
+    data: [Property]!
+    paginatorInfo: PaginatorInfo
+}
+type PaginatorInfo {
+      count: Int!
+      currentPage: Int!
+      firstItem: Int
+      hasMorePages: Boolean!
+      lastItem: Int
+      lastPage: Int!
+      perPage: Int!
+      total: Int!
+    }
+type Phone{
+    id: ID!
+    code:String
+    number:String!
+    user_id:ID!
+    user: User!
+    viber: Boolean
+    whatsapp: Boolean
+    telegram: Boolean
+}
+type UserType{
+    id: ID!
+    name: String!
+    users:[User!]!
+}
+type User {
+    id: ID
+    full_name: String 
+    picture: ImageQuality
+    email: String
+    login_phone: String
+    phones:[Phone]
+    user_type:UserType 
+    first_time: Date
+    is_admin: Boolean
+    is_delete: Boolean
+    is_block: Boolean
+    reason: String
+    block_start: DateTime
+    block_end: DateTime
+    last_active_time: DateTime
+    provider: String
+    spams: [Spam]
+    email_verified_at: DateTime,
+    login_phone: String
+    created_at: DateTime
+}
+type UserInfo{
+    id: ID
+    full_name: String 
+    picture: ImageQuality
+    email: String
+    phones:[Phone]
+    user_type:UserType 
+    first_time: Date
+    login_phone: String
+    last_active_time: DateTime
+}
+type ImageQuality {
+    original: String
+    min: String
+}
+type Support{
+    id: ID
+    user: User
+    name: String
+    email: String
+    text: String
+    is_support_status: String,
+    created_at: DateTime
+    updated_at: DateTime
+}
+type Language {
+    id: ID!
+    name: String!
+    code: String!
+    flag_image: String!
+    translations: [Translation!]!
+
+}
+type Translation{
+    id: ID!
+    name: String!
+    translated_name: String!
+    language: Language!
+}
+type PropertyType{
+    id: ID!
+    name: String!
+    properties: [Property!]!
+    filters: [Filter!]!
+}
+type CurrencyType{
+     id: ID!
+     name: String!
+     symbol: String!
+     is_current: Boolean
+     rate: Float
+     updated_at: DateTime
+}
+type DealType{
+    id: ID!
+    name: String!
+    properties: [Property!]!
+    property_deals: [PropertyDeal!]!
+}
+type BuldingType{
+    id: ID!
+    name: String!
+    properties: [Property!]!
+}
+type LandAreaType{
+    id: ID!
+    name: String!
+    properties: [Property!]!
+}
+type PriceSel{
+    currency_type: CurrencyType,
+    price: Float
+} 
+type PropertyDeal{
+    id: ID!
+    deal_type:DealType
+    property: Property
+    price: Float
+    price_usd: Float
+    price_sel: PriceSel
+    currency_type: CurrencyType
+}
+type PropertyAttachPhone{
+    id: ID
+    code: String
+    number:String
+    property_id:ID
+    property: Property
+    viber: Boolean
+    whatsapp: Boolean
+    telegram: Boolean
+}
+type Property{
+    id: ID!
+    property_key: String
+    property_type: PropertyType
+    user: User
+    property_deals: [PropertyDeal]
+    deal_types: [DealType]
+    property_type_id: Int
+    bulding_type: BuldingType
+    land_area_type: LandAreaType
+    latitude: Float
+    longitude: Float
+    address: String
+    region: RegionEnum
+    postal_code: String
+    property_state: String
+    created_at: DateTime
+    updated_at: DateTime
+    property_images:[PropertyImage] 
+    property_images_paginat:[PropertyImage] @hasMany(type: "paginator")
+    filters_values: [FiltersValue]
+    filters_values_not_null: [FiltersValue]
+    filters_values_speciale: [FiltersValue]
+    translate_descriptions: [TranslateDescription],
+    translate_property_address: [TranslatePropertyAddress]
+    sel_translate_property_address: [TranslatePropertyAddress]
+    review: String
+    update_count:Int
+    last_update:DateTime
+    next_update:DateTime
+    is_public_status: String
+    is_address_precise: Boolean
+    email: String
+    property_attach_phones: [PropertyAttachPhone]
+    is_bids: Boolean
+    view: Int,
+    is_top: Boolean
+    top_start:DateTime
+    top_end:DateTime,
+    same_place_group:String
+    spams:[Spam],
+    copy_id:Int,
+    saved_at:DateTime,
+    archived_at:DateTime,
+    deleted_at:DateTime,
+    is_favorite: ID
+}
+type Statistics {
+    start: Date,
+    end: Date,
+    views: [Views]
+}
+type  Views{
+    date: Date
+    views: Int
+}
+type Spam{
+     id: ID
+     user: User
+     property: Property
+     spam_points:[SpamPoint]
+     created_at : DateTime
+    
+}
+type SpamPoint{
+      id: ID
+      name: String
+      translate_spam_points: [TranslateSpamPoint]
+      translate_spam_points_by_sel_language: [TranslateSpamPoint]
+}
+type TranslateSpamPoint{
+    id: ID
+    spamPoint: SpamPoint
+    language: Language
+    description:String
+}
+type UsersPaginate{
+    users: [User]
+    total: Int
+    lastPage: Int
+}
+type PropertiesPaginate{
+   properties: [Property]
+   total: Int
+   lastPage: Int
+}
+
+type SpamsPaginate{
+    spams: [Spam]
+    total: Int
+    lastPage: Int
+}
+type ConfigPaginate{
+    configs : [Config]
+    total: Int
+    lastPage: Int
+}
+type Status{
+    status: Boolean
+}
+type TranslateDescription{
+    id: ID!
+    property: Property!
+    language: Language!
+    description:String
+}
+type TranslatePropertyAddress{
+    id: ID
+    property: Property
+    language: Language
+    addresse: String
+    reverse_address: String
+    country: String
+    province: String
+    locality: String
+    street: String
+    house: String
+}
+type PropertyImage{
+    id:ID!
+    property: Property!
+    name: ImageQuality
+    index:Int!
+}
+type FiltersValue{
+    id: ID!
+    filter: Filter!
+    property: Property!
+    value: String
+}
+type FilterPropertyType{
+    id: ID!
+    filter_id: Int!
+    property_type_id: Int!
+}
+type FilterGroup{
+    id: ID!
+    name: String!
+    filters: [Filter!]!
+}
+type Filter{
+    id: ID!
+    name: String!
+    deal_type: DealTypeEnum
+    filters_values: [FiltersValue!]!
+    property_types: [PropertyType!]!
+    filter_group_id:ID
+    filter_group: FilterGroup
+}
+type UserFavoriteProperty{
+    id:ID
+    user: User
+    property: Property
+    created_at: DateTime
+    updated_at: DateTime
+}
+
+type SaveUserFilterJson{
+    id:ID,
+    ids:[ID],
+    place:[placeType],
+    address: String,
+    region: RegionEnum,
+    property_type: [String],
+    user_type: String,
+    area: MinMaxType,
+    land_area: MinMaxType,
+    deal_types: [PropertyDealTypesEnum],
+    number_of_floors_of_the_building:MinMaxType,
+    apartment_floor:MinMaxType,
+    number_of_rooms:MinMaxType,
+    number_of_bathrooms: MinMaxType,
+    property_height:MinMaxTypeFloat,
+    property_state: PropertyStateEnum,
+    bulding_type_id: Int,
+    land_area_type_id: Int,
+    filters:[PropertyFilterValueType],
+    price_filters: [PriceFilterType],
+    price_order:String,
+    with_picture:Boolean,
+    is_negotiable:Boolean,
+    latest:Boolean,
+    currency_id:Int,
+    language: String,
+}
+type placeType{
+    latitude: Float,
+    longitude: Float,
+    radius: Int
+}
+type MinMaxType{
+    min:Int,
+    max: Int
+}
+
+type MinMaxTypeFloat{
+    min: Float,
+    max: Float
+}
+
+type PriceFilterType{
+    currency_type_id: Int!,
+    deal_type: String!,
+    min: Int,
+    max: Int,
+}
+type PropertyFilterValueType{
+    filter: String!
+    value: String
+    deal_type: DealTypeEnum
+}
+type NotificationUsersProperties{
+    id:ID
+    user: User
+    property: Property
+    created_at: DateTime
+    updated_at: DateTime
+}
+type SuggestsPriceProperty{
+     id:ID,
+     user: User
+     property: Property
+     price: Float!
+     currency_type: CurrencyType
+     is_checked: Boolean
+     note: String
+     end_time: DateTime
+     created_at: DateTime
+     updated_at: DateTime
+}
+
+type  RegisterPropertyInTop{
+      error:Boolean,
+      errorMessage: String,
+      orderId: String,
+      formUrl: String
+}
+type Config {
+    id:ID,
+    key:String,
+    value:String
+}
+type MediaLinks {
+    facebook_link: String,
+    instagram_link: String,
+    youtube_link: String
+}
+
+enum PropertyTypeEnum {
+  apartment @enum(value: apartment)
+  mansion @enum(value: mansion)
+  land_area @enum(value: land_area)
+  commercial_area @enum(value: commercial_area)
+}
+
+enum PropertyStateEnum {
+  good @enum(value: good)
+  average @enum(value: average)
+  poor @enum(value: poor)
+  renovated  @enum(value: renovated)
+  zero_condition  @enum(value: zero_condition)
+  overhauled @enum(value: overhauled)
+  euro_renovated @enum(value: euro_renovated)
+  sufficient @enum(value: sufficient)
+}
+
+enum IsPublicStatusEnum {
+  under_review @enum(value: under_review)
+  published @enum(value: published)
+  rejected @enum(value: rejected)
+  canceled @enum(value: canceled)
+}
+
+enum DealTypeEnum {
+  sell @enum(value: sell)
+  rent @enum(value: rent)
+}
+
+enum PropertyDealTypesEnum {
+    sale @enum(value: sale)
+    monthly_rental_fee @enum(value: monthly_rental_fee)
+    daily_rental_fee @enum(value: daily_rental_fee)
+}
+
+enum PageViewEnum {
+    DESKTOP @enum(value: DESKTOP)
+    MOBILE @enum(value: MOBILE)
+}
+
+enum RegionEnum {
+    yerevan @enum(value: yerevan)
+    aragatsotn @enum(value: aragatsotn)
+    ararat @enum(value: ararat)
+    armavir @enum(value: armavir)
+    gegharkunik @enum(value: gegharkunik)
+    kotayk @enum(value: kotayk)
+    lori @enum(value: lori)
+    shirak @enum(value: shirak)
+    syunik @enum(value: syunik)
+    tavush @enum(value: tavush)
+    vayotsdzor @enum(value: vayotsdzor)
+    yerevan_ajapnyak @enum(value: yerevan_ajapnyak)
+    yerevan_avan @enum(value: yerevan_avan)
+    yerevan_arabkir @enum(value: yerevan_arabkir)
+    yerevan_davtashen @enum(value: yerevan_davtashen)
+    yerevan_erebuni @enum(value: yerevan_erebuni)
+    yerevan_kentron @enum(value: yerevan_kentron)
+    yerevan_malatia @enum(value: yerevan_malatia)
+    yerevan_nornork @enum(value: yerevan_nornork)
+    yerevan_norkmarash @enum(value: yerevan_norkmarash)
+    yerevan_nubarashen @enum(value: yerevan_nubarashen)
+    yerevan_shengavit @enum(value: yerevan_shengavit)
+    yerevan_zeytun @enum(value: yerevan_zeytun)
+}
+  
+

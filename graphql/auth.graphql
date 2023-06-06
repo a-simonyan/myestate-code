@@ -1,0 +1,91 @@
+input LoginInput {
+    username: String!
+    password: String!
+    language: String
+}
+input RefreshTokenInput {
+    refresh_token: String
+}
+input ForgotPasswordInput {
+    email: String! 
+    password_reset_url: String! 
+    language: String
+}
+input NewPasswordWithCodeInput {
+    email: String!
+    token: String! 
+    password: String! 
+    password_confirmation: String!
+    language: String
+}
+
+input RegisterInput {
+    full_name: String! 
+    email: String! 
+    user_type: String
+    password: String!
+    password_confirmation: String!
+    email_verification_url: String!
+    system_type: String!
+    recaptcha: String
+    language: String
+}
+input SocialLoginInput {
+    provider: String! @rules(apply: ["required"])
+    token: String! @rules(apply: ["required"])
+}
+input VerifyEmailInput {
+    token: String!
+    language: String
+}
+input UpdatePassword {
+    old_password: String!
+    password: String! @rules(apply: ["required", "confirmed", "min:8"])
+    password_confirmation: String!
+}
+
+type AuthPayload {
+    access_token: String
+    refresh_token: String
+    expires_in: Int
+    token_type: String
+    user: User
+}
+type AuthPayloadUser {
+    access_token: String
+    user: User
+}
+type AuthPayloadLogin {
+    access_token: String
+    refresh_token: String
+    expires_in: Int
+    token_type: String
+    is_first_time: Int
+    user: User
+}
+type RefreshTokenPayload {
+    access_token: String!
+    refresh_token: String!
+    expires_in: Int!
+    token_type: String!
+}
+type LogoutResponse {
+    status: String!
+    message: String
+}
+type ForgotPasswordResponse {
+    status: Int!
+    message: String
+}
+type RegisterResponse {
+    tokens: AuthPayload
+    status: Int!
+}
+type UpdatePasswordResponse {
+    status: String!
+    message: String
+}
+
+
+
+
